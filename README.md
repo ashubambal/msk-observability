@@ -1,123 +1,129 @@
-# MSK InfraLens - Optimized
+# MSK InfraLens - Local Kafka Edition
 
-A lightweight Kafka monitoring dashboard for AWS MSK clusters. **Total size: < 1MB** (without node_modules).
+A lightweight Kafka monitoring dashboard optimized for local development. **Real-time data from your local Kafka cluster.**
 
 ## ⚡ Quick Start
 
-1. **Install dependencies:**
+1. **Prerequisites:**
+   - Ensure your local Kafka instance is running on `localhost:9092`
+   - Node.js installed
+   - Kafka should be accessible and running
+
+2. **Install dependencies:**
    ```powershell
-   # PowerShell (Windows)
    npm install
    cd backend
    npm install
    cd ..
    ```
-   
-   ```bash
-   # Bash/Terminal (Linux/Mac)
-   npm install && cd backend && npm install && cd ..
-   ```
 
-2. **Start the application:**
+3. **Start the application:**
    
-   **🚀 One-Click Start (Choose one):**
-   ```cmd
-   # Batch file (Windows - Always works)
-   start.bat
-   ```
+   **🚀 VS Code Tasks (Recommended):**
+   - `Ctrl+Shift+P` → "Tasks: Run Task" → "Start MSK InfraLens Backend"
+   - `Ctrl+Shift+P` → "Tasks: Run Task" → "Start MSK InfraLens Frontend"
    
-   ```powershell
-   # PowerShell (if execution policy allows)
-   PowerShell -ExecutionPolicy Bypass -File "start.ps1"
-   ```
-   
-   **VS Code Tasks (Recommended)**
-   - Open Command Palette (`Ctrl+Shift+P`)
-   - Run: "Tasks: Run Task" → "Start MSK InfraLens Backend"
-   - Run: "Tasks: Run Task" → "Start MSK InfraLens Frontend"
-   
-   **Manual (Two Terminals)**
+   **Manual:**
    ```powershell
    # Terminal 1 - Backend
    cd backend; npm start
    
-   # Terminal 2 - Frontend
+   # Terminal 2 - Frontend  
    npm start
    ```
 
-3. **Access the application:**
+4. **Access the application:**
    - 📊 **Dashboard**: http://localhost:3000
    - 🔧 **Backend API**: http://localhost:8000
-   - 🎭 **Mode**: Demo with realistic mock data
+   - � **Health Check**: http://localhost:8000/api/health
 
-## 🚀 What's Optimized
+## 🚀 What's Included
 
-**Size Reduction: 450MB → <1MB (99.8% reduction)**
+### Real Kafka Integration:
+- ✅ **Direct Connection** to local Kafka (localhost:9092)
+- ✅ **Live Cluster Metrics** - Real broker status and partition counts
+- ✅ **Topic Management** - Live topic details and configurations  
+- ✅ **Consumer Monitoring** - Real consumer group lag and status
+- ✅ **Demo Data Creation** - Built-in topic and message generation
 
-### Removed:
-- ❌ All `node_modules` (installable via npm)
-- ❌ Tailwind CSS + PostCSS (replaced with simple CSS)
-- ❌ Unnecessary UI component libraries
-- ❌ AWS SDK dependencies (demo mode only)
-- ❌ Complex configuration files
-- ❌ PowerShell/batch scripts
+### Clean & Focused:
+- ❌ No Docker dependencies
+- ❌ No cloud provider complexity  
+- ❌ No mock data fallbacks
+- ❌ No unnecessary configuration
+- ✅ Pure local Kafka integration
 
-### Simplified:
-- ✅ **Frontend**: Pure React with inline styles
-- ✅ **Backend**: Express.js with mock data only
-- ✅ **Dependencies**: Only essential packages
-- ✅ **CSS**: Custom lightweight styles
-- ✅ **Components**: Single dashboard component
+## 🎯 Features
 
-## 📋 Current Dependencies
+- 🏠 **Cluster Overview** - Live broker metrics and status
+- 📝 **Topics Management** - Real topic details and configurations
+- 👥 **Consumer Groups** - Live consumer lag and status monitoring  
+- 📊 **Real-time Updates** - Live data refresh every 30 seconds
+- 🔄 **Demo Setup** - POST `/api/setup-demo` for test data
+
+## 📋 Dependencies
 
 **Frontend (4 packages):**
 - react, react-dom, react-scripts, axios
 
-**Backend (2 packages):**
-- express, cors
-
-## 🎯 Features
-
-- 🏠 **Cluster Overview** - Broker metrics and status
-- 📝 **Topics Management** - Topic details and throughput
-- 👥 **Consumer Groups** - Group status and lag monitoring
-- 📊 **Real-time Updates** - Auto-refresh every 30 seconds
-- 🎭 **Demo Mode** - Works without AWS setup
+**Backend (3 packages):**
+- express, cors, kafkajs
 
 ## 📁 Project Structure
 
 ```
-msk-infralens/ (< 1MB)
+msk-infralens/
 ├── src/
 │   ├── SimpleDashboard.jsx    # Main dashboard component
 │   ├── index.js               # App entry point  
 │   └── index.css              # Lightweight styles
 ├── backend/
-│   ├── server.js              # Express server with mock data
+│   ├── server.js              # Express server with Kafka integration
+│   ├── kafkaService.js        # Kafka connection and data fetching
 │   └── package.json           # Backend dependencies
 ├── public/
 │   └── index.html             # HTML template
-├── start.bat                  # Windows batch startup script
-├── start.ps1                  # PowerShell startup script
 ├── package.json               # Frontend dependencies
 └── README.md                  # Documentation
 ```
 
 ## 🔧 Tech Stack
 
-- **Frontend**: React 18 + Custom CSS (no frameworks)
-- **Backend**: Node.js + Express (minimal)
-- **API**: RESTful endpoints with JSON
-- **Demo**: Built-in mock data (no external dependencies)
+- **Frontend**: React 18 + Custom CSS
+- **Backend**: Node.js + Express + KafkaJS
+- **Data Source**: Local Apache Kafka
+- **API**: RESTful endpoints with real-time JSON data
+
+## 🔄 API Endpoints
+
+- `GET /api/health` - System health and Kafka connection status
+- `GET /api/kafka-status` - Kafka connection details
+- `GET /api/cluster-status` - Live cluster metadata
+- `GET /api/topics` - Real topic information with configurations
+- `GET /api/consumer-groups` - Consumer group lag and status
+- `POST /api/setup-demo` - Create demo topics and test messages
 
 ## 💡 Troubleshooting
 
-**PowerShell Script Issues:**
-- If `.\start.ps1` doesn't work, use: `PowerShell -ExecutionPolicy Bypass -File "start.ps1"`
-- Or simply use `start.bat` which always works on Windows
-- VS Code Tasks are the most reliable method
+**Kafka Not Running:**
+- If you see connection errors like `ECONNREFUSED 127.0.0.1:9092`, Kafka is not running
+- **Start Kafka**: Navigate to your Kafka installation directory (e.g., `C:\kafka_2.13-3.9.1`)
+- Run the start script: `.\start-kafka-services.ps1` or manually start:
+  ```powershell
+  # Start Zookeeper first
+  .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+  
+  # Then start Kafka (in a new terminal)
+  .\bin\windows\kafka-server-start.bat .\config\server.properties
+  ```
+- **Verify**: Check if port 9092 is listening: `netstat -ano | Select-String ":9092"`
 
-**For Windows PowerShell users:**
-- Use `;` instead of `&&` to chain commands
-- Example: `npm install; cd backend; npm install; cd ..`
+**Kafka Connection Issues:**
+- Ensure Kafka is running: Check for Java process on port 9092
+- Restart your local Kafka instance if needed
+- Check logs: Backend will show connection status on startup
+
+**Application Issues:**
+- Backend not starting: Check if port 8000 is available
+- Frontend not loading: Check if port 3000 is available  
+- Data not updating: Verify Kafka connection in health endpoint

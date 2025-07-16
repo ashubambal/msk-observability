@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 export default function SimpleDashboard() {
   const [topics, setTopics] = useState([]);
   const [clusterStatus, setClusterStatus] = useState({});
   const [consumerGroups, setConsumerGroups] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('cluster');
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
-  const fetchKafkaData = async () => {
+  const fetchKafkaData = useCallback(async () => {
     try {
       setError(null);
       const [topicsRes, clusterRes, consumersRes] = await Promise.all([
@@ -27,38 +28,28 @@ export default function SimpleDashboard() {
     } catch (err) {
       setError('Failed to connect to backend');
       setIsLoading(false);
-      // Load mock data on error
-      loadMockData();
+      console.error('Error fetching Kafka data:', err);
     }
-  };
+  }, [API_BASE_URL]);
 
-  const loadMockData = () => {
-    setClusterStatus({
-      brokers: 3,
-      totalPartitions: 24,
-      totalMessages: "1.2M",
-      avgLatency: "2.3ms",
-      underReplicatedPartitions: 0
-    });
-
-    setTopics([
-      { name: "user-events", partitions: 6, replicationFactor: 3, size: "1.2GB", throughput: "150 KB/s" },
-      { name: "order-updates", partitions: 4, replicationFactor: 3, size: "800MB", throughput: "89 KB/s" },
-      { name: "system-logs", partitions: 8, replicationFactor: 2, size: "2.1GB", throughput: "245 KB/s" }
-    ]);
-
-    setConsumerGroups([
-      { groupId: "analytics-service", lag: 12, members: 3, status: "Stable", topics: ["user-events"] },
-      { groupId: "email-processor", lag: 0, members: 2, status: "Stable", topics: ["order-updates"] },
-      { groupId: "monitoring-agent", lag: 156, members: 1, status: "Rebalancing", topics: ["system-logs"] }
-    ]);
-  };
+  const fetchRecentMessages = useCallback(async () => {
+    try {
+      const messagesRes = await axios.get(`${API_BASE_URL}/api/recent-messages`);
+      setMessages(messagesRes.data);
+    } catch (err) {
+      console.error('Error fetching recent messages:', err);
+    }
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchKafkaData();
-    const interval = setInterval(fetchKafkaData, 30000);
+    fetchRecentMessages();
+    const interval = setInterval(() => {
+      fetchKafkaData();
+      fetchRecentMessages();
+    }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchKafkaData, fetchRecentMessages]);
 
   const getBadgeClass = (status) => {
     switch (status) {
@@ -77,7 +68,6 @@ export default function SimpleDashboard() {
           <span className={error ? 'badge danger' : 'badge success'}>
             {error ? '🔴 Disconnected' : '🟢 Connected'}
           </span>
-          <span className="badge">🎭 Demo Mode</span>
         </div>
       </div>
 
@@ -95,6 +85,12 @@ export default function SimpleDashboard() {
           📝 Topics
         </button>
         <button 
+          className={`tab-button ${activeTab === 'messages' ? 'active' : ''}`}
+          onClick={() => setActiveTab('messages')}
+        >
+          📨 Live Messages
+        </button>
+        <button 
           className={`tab-button ${activeTab === 'consumers' ? 'active' : ''}`}
           onClick={() => setActiveTab('consumers')}
         >
@@ -106,17 +102,45 @@ export default function SimpleDashboard() {
         <div>
           <h2 style={{ marginBottom: '20px', fontSize: '24px' }}>Cluster Overview</h2>
           <div className="grid">
-            <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('cluster')}
+            >
               <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.brokers || 0}</h3>
               <p>Kafka Brokers</p>
             </div>
-            <div className="card" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('cluster')}
+            >
               <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.totalPartitions || 0}</h3>
               <p>Total Partitions</p>
             </div>
-            <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.totalMessages || 0}</h3>
-              <p>Total Messages</p>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('messages')}
+            >
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{messages.length || 0}</h3>
+              <p>Recent Messages</p>
+            </div>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('topics')}
+            >
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{topics.length || 0}</h3>
+              <p>Total Topics</p>
+            </div>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('consumers')}
+            >
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{consumerGroups.length || 0}</h3>
+              <p>Total Consumer Groups</p>
             </div>
           </div>
         </div>
@@ -149,6 +173,58 @@ export default function SimpleDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'messages' && (
+        <div>
+          <h2 style={{ marginBottom: '20px', fontSize: '24px' }}>Live Message Activity</h2>
+          <div style={{ marginBottom: '20px' }}>
+            <span className="badge success">🔄 Auto-refresh every 30s</span>
+            <span className="badge" style={{ marginLeft: '10px' }}>📊 Recent: {messages.length} messages</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
+            {messages.length === 0 ? (
+              <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
+                <h3 style={{ color: '#666', marginBottom: '10px' }}>No recent messages</h3>
+                <p style={{ color: '#888' }}>Try sending some test messages or check if topics have active producers</p>
+                <button 
+                  className="button" 
+                  style={{ marginTop: '15px' }}
+                  onClick={() => {
+                    axios.post(`${API_BASE_URL}/api/setup-demo`)
+                      .then(() => {
+                        setTimeout(fetchRecentMessages, 2000);
+                      })
+                      .catch(err => console.error('Demo setup failed:', err));
+                  }}
+                >
+                  🚀 Generate Demo Messages
+                </button>
+              </div>
+            ) : (
+              messages.map((msg, index) => (
+                <div key={index} className="card" style={{ borderLeft: '4px solid #007bff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{msg.topic}</h4>
+                      <span style={{ fontSize: '12px', color: '#666' }}>Partition {msg.partition} • Offset {msg.offset}</span>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#888' }}>{msg.timestamp}</span>
+                  </div>
+                  <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px', marginBottom: '8px' }}>
+                    <strong>Key:</strong> <code style={{ backgroundColor: '#e9ecef', padding: '2px 4px', borderRadius: '2px' }}>{msg.key || 'null'}</code>
+                  </div>
+                  <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px' }}>
+                    <strong>Value:</strong> 
+                    <pre style={{ margin: '5px 0 0 0', fontSize: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {typeof msg.value === 'object' ? JSON.stringify(msg.value, null, 2) : msg.value}
+                    </pre>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
