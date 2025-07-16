@@ -72,12 +72,11 @@ export default function SimpleDashboard() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#333' }}>MSK InfraLens</h1>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#333' }}>MSK-Observability</h1>
         <div style={{ display: 'flex', gap: '10px' }}>
           <span className={error ? 'badge danger' : 'badge success'}>
             {error ? '🔴 Disconnected' : '🟢 Connected'}
           </span>
-          <span className="badge">🎭 Demo Mode</span>
         </div>
       </div>
 
