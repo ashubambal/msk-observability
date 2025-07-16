@@ -5,7 +5,6 @@ export default function SimpleDashboard() {
   const [topics, setTopics] = useState([]);
   const [clusterStatus, setClusterStatus] = useState({});
   const [consumerGroups, setConsumerGroups] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('cluster');
@@ -28,28 +27,20 @@ export default function SimpleDashboard() {
     } catch (err) {
       setError('Failed to connect to backend');
       setIsLoading(false);
-      console.error('Error fetching Kafka data:', err);
-    }
-  }, [API_BASE_URL]);
-
-  const fetchRecentMessages = useCallback(async () => {
-    try {
-      const messagesRes = await axios.get(`${API_BASE_URL}/api/recent-messages`);
-      setMessages(messagesRes.data);
-    } catch (err) {
-      console.error('Error fetching recent messages:', err);
+      // Log error for debugging in development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching Kafka data:', err);
+      }
     }
   }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchKafkaData();
-    fetchRecentMessages();
     const interval = setInterval(() => {
       fetchKafkaData();
-      fetchRecentMessages();
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchKafkaData, fetchRecentMessages]);
+  }, [fetchKafkaData]);
 
   const getBadgeClass = (status) => {
     switch (status) {
@@ -85,12 +76,6 @@ export default function SimpleDashboard() {
           📝 Topics
         </button>
         <button 
-          className={`tab-button ${activeTab === 'messages' ? 'active' : ''}`}
-          onClick={() => setActiveTab('messages')}
-        >
-          📨 Live Messages
-        </button>
-        <button 
           className={`tab-button ${activeTab === 'consumers' ? 'active' : ''}`}
           onClick={() => setActiveTab('consumers')}
         >
@@ -117,14 +102,6 @@ export default function SimpleDashboard() {
             >
               <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.totalPartitions || 0}</h3>
               <p>Total Partitions</p>
-            </div>
-            <div 
-              className="card clickable" 
-              style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white', cursor: 'pointer' }}
-              onClick={() => setActiveTab('messages')}
-            >
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{messages.length || 0}</h3>
-              <p>Recent Messages</p>
             </div>
             <div 
               className="card clickable" 
@@ -173,58 +150,6 @@ export default function SimpleDashboard() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'messages' && (
-        <div>
-          <h2 style={{ marginBottom: '20px', fontSize: '24px' }}>Live Message Activity</h2>
-          <div style={{ marginBottom: '20px' }}>
-            <span className="badge success">🔄 Auto-refresh every 30s</span>
-            <span className="badge" style={{ marginLeft: '10px' }}>📊 Recent: {messages.length} messages</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
-            {messages.length === 0 ? (
-              <div className="card" style={{ textAlign: 'center', padding: '40px' }}>
-                <h3 style={{ color: '#666', marginBottom: '10px' }}>No recent messages</h3>
-                <p style={{ color: '#888' }}>Try sending some test messages or check if topics have active producers</p>
-                <button 
-                  className="button" 
-                  style={{ marginTop: '15px' }}
-                  onClick={() => {
-                    axios.post(`${API_BASE_URL}/api/setup-demo`)
-                      .then(() => {
-                        setTimeout(fetchRecentMessages, 2000);
-                      })
-                      .catch(err => console.error('Demo setup failed:', err));
-                  }}
-                >
-                  🚀 Generate Demo Messages
-                </button>
-              </div>
-            ) : (
-              messages.map((msg, index) => (
-                <div key={index} className="card" style={{ borderLeft: '4px solid #007bff' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                    <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{msg.topic}</h4>
-                      <span style={{ fontSize: '12px', color: '#666' }}>Partition {msg.partition} • Offset {msg.offset}</span>
-                    </div>
-                    <span style={{ fontSize: '12px', color: '#888' }}>{msg.timestamp}</span>
-                  </div>
-                  <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px', marginBottom: '8px' }}>
-                    <strong>Key:</strong> <code style={{ backgroundColor: '#e9ecef', padding: '2px 4px', borderRadius: '2px' }}>{msg.key || 'null'}</code>
-                  </div>
-                  <div style={{ backgroundColor: '#f8f9fa', padding: '10px', borderRadius: '4px' }}>
-                    <strong>Value:</strong> 
-                    <pre style={{ margin: '5px 0 0 0', fontSize: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {typeof msg.value === 'object' ? JSON.stringify(msg.value, null, 2) : msg.value}
-                    </pre>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </div>
       )}

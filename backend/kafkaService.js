@@ -17,18 +17,18 @@ class KafkaService {
 
   async connect() {
     try {
-      console.log('🔌 Attempting to connect to Kafka...');
+      // Attempting Kafka connection
       await this.admin.connect();
       this.isConnected = true;
-      console.log('✅ Connected to Kafka successfully');
+      // Connected successfully
       
       // Test the connection by fetching metadata
       const metadata = await this.admin.fetchTopicMetadata();
-      console.log(`📊 Found ${metadata.topics.length} topics`);
+      // Found topics
       
       return true;
     } catch (error) {
-      console.error('❌ Failed to connect to Kafka:', error.message);
+      // Connection failed - log only essential info
       this.isConnected = false;
       return false;
     }
@@ -172,56 +172,6 @@ class KafkaService {
     } catch (error) {
       console.error('Error fetching consumer groups:', error.message);
       throw error;
-    }
-  }
-
-  async getRecentMessages(limit = 20) {
-    try {
-      // For now, return sample messages to test the UI
-      const sampleMessages = [
-        {
-          topic: 'user-events',
-          partition: 0,
-          offset: '12345',
-          key: 'user-123',
-          value: {
-            event: 'user_login',
-            userId: 'user-123',
-            timestamp: new Date().toISOString(),
-            metadata: { source: 'web', ip: '192.168.1.100' }
-          },
-          timestamp: new Date().toLocaleString(),
-          headers: {}
-        },
-        {
-          topic: 'order-updates',
-          partition: 1,
-          offset: '67890',
-          key: 'order-456',
-          value: {
-            orderId: 'order-456',
-            status: 'shipped',
-            customerId: 'customer-789',
-            amount: 129.99
-          },
-          timestamp: new Date(Date.now() - 30000).toLocaleString(),
-          headers: {}
-        },
-        {
-          topic: 'system-logs',
-          partition: 2,
-          offset: '54321',
-          key: null,
-          value: 'INFO: Application started successfully',
-          timestamp: new Date(Date.now() - 60000).toLocaleString(),
-          headers: { level: 'INFO' }
-        }
-      ];
-
-      return sampleMessages;
-    } catch (error) {
-      console.error('Error fetching recent messages:', error.message);
-      return [];
     }
   }
 

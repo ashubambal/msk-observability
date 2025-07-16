@@ -35,7 +35,7 @@ A lightweight Kafka monitoring dashboard optimized for local development. **Real
 4. **Access the application:**
    - 📊 **Dashboard**: http://localhost:3000
    - 🔧 **Backend API**: http://localhost:8000
-   - � **Health Check**: http://localhost:8000/api/health
+   - 🏥 **Health Check**: http://localhost:8000/api/health
 
 ## 🚀 What's Included
 
@@ -47,11 +47,8 @@ A lightweight Kafka monitoring dashboard optimized for local development. **Real
 - ✅ **Demo Data Creation** - Built-in topic and message generation
 
 ### Clean & Focused:
-- ❌ No Docker dependencies
-- ❌ No cloud provider complexity  
-- ❌ No mock data fallbacks
-- ❌ No unnecessary configuration
 - ✅ Pure local Kafka integration
+- ✅ Security-first approach
 
 ## 🎯 Features
 
@@ -72,7 +69,7 @@ A lightweight Kafka monitoring dashboard optimized for local development. **Real
 ## 📁 Project Structure
 
 ```
-msk-infralens/
+msk-observability/
 ├── src/
 │   ├── SimpleDashboard.jsx    # Main dashboard component
 │   ├── index.js               # App entry point  
@@ -103,6 +100,16 @@ msk-infralens/
 - `GET /api/consumer-groups` - Consumer group lag and status
 - `POST /api/setup-demo` - Create demo topics and test messages
 
+## 🔒 Security Features
+
+- **No Message Content Exposure** - Monitors metadata only, never consumes actual messages
+- **Local-Only Access** - No external network dependencies or cloud connections
+- **Secure Error Handling** - Prevents information leakage in production
+- **No Hardcoded Secrets** - All sensitive data uses environment variables
+- **Security Headers** - Implements OWASP security headers
+- **Input Validation** - All API inputs are validated and sanitized
+- **Development-Only Logging** - Sensitive logs only in development mode
+
 ## 💡 Troubleshooting
 
 **Kafka Not Running:**
@@ -127,3 +134,30 @@ msk-infralens/
 - Backend not starting: Check if port 8000 is available
 - Frontend not loading: Check if port 3000 is available  
 - Data not updating: Verify Kafka connection in health endpoint
+
+## 🏗️ Development
+
+### Environment Setup:
+```powershell
+# Clone and setup
+git clone <repository-url>
+cd msk-observability
+npm install
+cd backend; npm install; cd ..
+
+# Start development servers
+npm run start:dev  # Starts both frontend and backend
+```
+
+### Building for Production:
+```powershell
+npm run build
+```
+
+## 📜 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**Note**: This tool is designed for local development and monitoring. It does not consume or expose actual message content for security reasons.

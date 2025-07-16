@@ -10,6 +10,16 @@ const kafkaService = new KafkaService();
 app.use(cors());
 app.use(express.json());
 
+// Security middleware
+app.use((req, res, next) => {
+  // Remove server information headers
+  res.removeHeader('X-Powered-By');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // API Routes
 app.get('/api/cluster-status', async (req, res) => {
   try {
@@ -17,7 +27,10 @@ app.get('/api/cluster-status', async (req, res) => {
     res.json(clusterStatus);
   } catch (error) {
     console.error('Error fetching cluster status:', error.message);
-    res.status(500).json({ error: 'Failed to fetch cluster status', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to fetch cluster status',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
@@ -27,7 +40,10 @@ app.get('/api/topics', async (req, res) => {
     res.json(topics);
   } catch (error) {
     console.error('Error fetching topics:', error.message);
-    res.status(500).json({ error: 'Failed to fetch topics', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to fetch topics',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
@@ -37,23 +53,16 @@ app.get('/api/consumer-groups', async (req, res) => {
     res.json(consumerGroups);
   } catch (error) {
     console.error('Error fetching consumer groups:', error.message);
-    res.status(500).json({ error: 'Failed to fetch consumer groups', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to fetch consumer groups',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 });
 
 app.get('/api/health', async (req, res) => {
   const health = await kafkaService.healthCheck();
   res.json(health);
-});
-
-app.get('/api/recent-messages', async (req, res) => {
-  try {
-    const messages = await kafkaService.getRecentMessages();
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching recent messages:', error.message);
-    res.status(500).json({ error: 'Failed to fetch recent messages', details: error.message });
-  }
 });
 
 // Demo setup endpoints
@@ -87,7 +96,7 @@ app.get('/', (req, res) => {
     message: 'MSK InfraLens API', 
     version: '2.0.0',
     mode: 'kafka-local',
-    endpoints: ['/api/cluster-status', '/api/topics', '/api/consumer-groups', '/api/health', '/api/recent-messages', '/api/setup-demo']
+    endpoints: ['/api/cluster-status', '/api/topics', '/api/consumer-groups', '/api/health', '/api/setup-demo']
   });
 });
 
