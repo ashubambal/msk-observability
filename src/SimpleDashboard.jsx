@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 
 export default function SimpleDashboard() {
@@ -11,7 +11,7 @@ export default function SimpleDashboard() {
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
-  const fetchKafkaData = async () => {
+  const fetchKafkaData = useCallback(async () => {
     try {
       setError(null);
       const [topicsRes, clusterRes, consumersRes] = await Promise.all([
@@ -27,38 +27,20 @@ export default function SimpleDashboard() {
     } catch (err) {
       setError('Failed to connect to backend');
       setIsLoading(false);
-      // Load mock data on error
-      loadMockData();
+      // Log error for debugging in development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching Kafka data:', err);
+      }
     }
-  };
-
-  const loadMockData = () => {
-    setClusterStatus({
-      brokers: 3,
-      totalPartitions: 24,
-      totalMessages: "1.2M",
-      avgLatency: "2.3ms",
-      underReplicatedPartitions: 0
-    });
-
-    setTopics([
-      { name: "user-events", partitions: 6, replicationFactor: 3, size: "1.2GB", throughput: "150 KB/s" },
-      { name: "order-updates", partitions: 4, replicationFactor: 3, size: "800MB", throughput: "89 KB/s" },
-      { name: "system-logs", partitions: 8, replicationFactor: 2, size: "2.1GB", throughput: "245 KB/s" }
-    ]);
-
-    setConsumerGroups([
-      { groupId: "analytics-service", lag: 12, members: 3, status: "Stable", topics: ["user-events"] },
-      { groupId: "email-processor", lag: 0, members: 2, status: "Stable", topics: ["order-updates"] },
-      { groupId: "monitoring-agent", lag: 156, members: 1, status: "Rebalancing", topics: ["system-logs"] }
-    ]);
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     fetchKafkaData();
-    const interval = setInterval(fetchKafkaData, 30000);
+    const interval = setInterval(() => {
+      fetchKafkaData();
+    }, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchKafkaData]);
 
   const getBadgeClass = (status) => {
     switch (status) {
@@ -77,7 +59,6 @@ export default function SimpleDashboard() {
           <span className={error ? 'badge danger' : 'badge success'}>
             {error ? '🔴 Disconnected' : '🟢 Connected'}
           </span>
-          <span className="badge">🎭 Demo Mode</span>
         </div>
       </div>
 
@@ -106,17 +87,37 @@ export default function SimpleDashboard() {
         <div>
           <h2 style={{ marginBottom: '20px', fontSize: '24px' }}>Cluster Overview</h2>
           <div className="grid">
-            <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('cluster')}
+            >
               <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.brokers || 0}</h3>
               <p>Kafka Brokers</p>
             </div>
-            <div className="card" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('cluster')}
+            >
               <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.totalPartitions || 0}</h3>
               <p>Total Partitions</p>
             </div>
-            <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{clusterStatus.totalMessages || 0}</h3>
-              <p>Total Messages</p>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('topics')}
+            >
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{topics.length || 0}</h3>
+              <p>Total Topics</p>
+            </div>
+            <div 
+              className="card clickable" 
+              style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', color: 'white', cursor: 'pointer' }}
+              onClick={() => setActiveTab('consumers')}
+            >
+              <h3 style={{ fontSize: '24px', fontWeight: 'bold' }}>{consumerGroups.length || 0}</h3>
+              <p>Total Consumer Groups</p>
             </div>
           </div>
         </div>
