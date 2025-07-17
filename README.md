@@ -49,6 +49,8 @@ A lightweight Kafka monitoring dashboard optimized for local development. **Real
 ### Clean & Focused:
 - ✅ Pure local Kafka integration
 - ✅ Security-first approach
+- ✅ Minimal dependencies (only 7 packages total)
+- ✅ Clean project structure
 
 ## 🎯 Features
 
@@ -65,6 +67,8 @@ A lightweight Kafka monitoring dashboard optimized for local development. **Real
 
 **Backend (3 packages):**
 - express, cors, kafkajs
+
+**Total: 7 packages only** - Lightweight and focused!
 
 ## 📁 Project Structure
 
